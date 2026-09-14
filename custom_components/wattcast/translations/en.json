@@ -14,41 +14,58 @@
     "error": {
       "cannot_connect": "Could not reach the Wattcast API",
       "not_wattcast": "That URL does not answer like a Wattcast API",
-      "invalid_url": "Enter a full URL such as https://wattcast.eu"
+      "invalid_url": "Enter a full address, for example the default one"
     },
     "abort": {
       "already_configured": "This zone is already configured"
     }
   },
-  "selector": {
-    "zone": {
-      "options": {
-        "EE": "Estonia (EE)",
-        "FI": "Finland (FI)",
-        "LV": "Latvia (LV)",
-        "LT": "Lithuania (LT)"
-      }
-    }
-  },
   "entity": {
     "sensor": {
-      "price": { "name": "Price" },
-      "price_hour": { "name": "Price (hour)" },
-      "today_average": { "name": "Today average" },
-      "tomorrow_average": { "name": "Tomorrow average" },
-      "cheapest_1h": { "name": "Cheapest 1 h" },
-      "cheapest_2h": { "name": "Cheapest 2 h" },
-      "cheapest_3h": { "name": "Cheapest 3 h" },
+      "price": {
+        "name": "Price"
+      },
+      "price_hour": {
+        "name": "Price (hour)"
+      },
+      "today_average": {
+        "name": "Today average"
+      },
+      "tomorrow_average": {
+        "name": "Tomorrow average"
+      },
+      "cheapest_1h": {
+        "name": "Cheapest 1 h"
+      },
+      "cheapest_2h": {
+        "name": "Cheapest 2 h"
+      },
+      "cheapest_3h": {
+        "name": "Cheapest 3 h"
+      },
       "price_level": {
         "name": "Price level",
-        "state": { "cheap": "Cheap", "normal": "Normal", "high": "High", "expensive": "Expensive" }
+        "state": {
+          "cheap": "Cheap",
+          "normal": "Normal",
+          "high": "High",
+          "expensive": "Expensive"
+        }
       },
-      "forecast": { "name": "Forecast" },
-      "outlook": { "name": "Outlook" }
+      "forecast": {
+        "name": "Forecast"
+      },
+      "outlook": {
+        "name": "Outlook"
+      }
     },
     "binary_sensor": {
-      "cheap_now": { "name": "Cheap now" },
-      "tomorrow_published": { "name": "Tomorrow published" }
+      "cheap_now": {
+        "name": "Cheap now"
+      },
+      "tomorrow_published": {
+        "name": "Tomorrow published"
+      }
     }
   }
 }

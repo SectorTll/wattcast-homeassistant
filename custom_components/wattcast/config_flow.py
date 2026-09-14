@@ -15,7 +15,7 @@ from .const import CONF_API_KEY, CONF_BASE_URL, CONF_ZONE, DEFAULT_BASE_URL, DOM
 
 SCHEMA = vol.Schema({
     vol.Required(CONF_ZONE, default="EE"): SelectSelector(
-        SelectSelectorConfig(options=ZONES, mode=SelectSelectorMode.DROPDOWN, translation_key="zone")),
+        SelectSelectorConfig(options=ZONES, mode=SelectSelectorMode.DROPDOWN)),
     vol.Required(CONF_BASE_URL, default=DEFAULT_BASE_URL): TextSelector(TextSelectorConfig(type=TextSelectorType.URL)),
     vol.Optional(CONF_API_KEY): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
 })
