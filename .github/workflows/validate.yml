@@ -15,9 +15,6 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
-          # Brand images are bundled in custom_components/wattcast/brand/ (HA 2026.3+), which the runtime uses.
-          # The hacs action's brands check still queries the CDN, so keep ignoring it here.
-          ignore: brands
 
   hassfest:
     name: Hassfest
