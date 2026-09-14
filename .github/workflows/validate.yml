@@ -15,8 +15,8 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
-          # brands: the domain must be added to home-assistant/brands for the default HACS store.
-          # Custom-repository installs work without it; ignore the check until that PR lands.
+          # Brand images are bundled in custom_components/wattcast/brand/ (HA 2026.3+), which the runtime uses.
+          # The hacs action's brands check still queries the CDN, so keep ignoring it here.
           ignore: brands
 
   hassfest:
