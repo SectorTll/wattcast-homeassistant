@@ -6,7 +6,7 @@ Prices are exchange prices in **ct/kWh without VAT, network fees or supplier mar
 
 ## Install
 
-1. HACS → Integrations → ⋮ → *Custom repositories* → add `https://github.com/SectorTll/wattcast-hacs` (type
+1. HACS → Integrations → ⋮ → *Custom repositories* → add `https://github.com/SectorTll/wattcast-homeassistant` (type
    *Integration*), then install **Wattcast** and restart Home Assistant.
 2. Settings → Devices & services → *Add integration* → **Wattcast** → pick the bidding zone. One entry per zone.
    The API base URL and the optional API key are only needed for a self-hosted Wattcast or a higher rate limit.

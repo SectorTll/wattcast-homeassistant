@@ -3,10 +3,10 @@
   "name": "Wattcast",
   "codeowners": ["@SectorTll"],
   "config_flow": true,
-  "documentation": "https://github.com/SectorTll/wattcast-hacs",
+  "documentation": "https://github.com/SectorTll/wattcast-homeassistant",
   "integration_type": "service",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/SectorTll/wattcast-hacs/issues",
+  "issue_tracker": "https://github.com/SectorTll/wattcast-homeassistant/issues",
   "requirements": [],
-  "version": "0.2.2"
+  "version": "0.2.3"
 }
