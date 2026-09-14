@@ -1,0 +1,49 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Wattcast",
+        "description": "Nord Pooli börsihind ja 7 päeva prognoos Eestile, Soomele, Lätile ja Leedule. Üks kirje hinnapiirkonna kohta.",
+        "data": {
+          "zone": "Hinnapiirkond",
+          "base_url": "API aadress",
+          "api_key": "API võti (valikuline, kõrgem päringulimiit)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Wattcasti API-ga ei saanud ühendust",
+      "not_wattcast": "See aadress ei vasta nagu Wattcasti API",
+      "invalid_url": "Sisesta täielik aadress, näiteks https://wattcast.eu"
+    },
+    "abort": {
+      "already_configured": "See piirkond on juba seadistatud"
+    }
+  },
+  "selector": {
+    "zone": {
+      "options": { "EE": "Eesti (EE)", "FI": "Soome (FI)", "LV": "Läti (LV)", "LT": "Leedu (LT)" }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "price": { "name": "Hind" },
+      "price_hour": { "name": "Hind (tund)" },
+      "today_average": { "name": "Tänane keskmine" },
+      "tomorrow_average": { "name": "Homne keskmine" },
+      "cheapest_1h": { "name": "Odavaim 1 h" },
+      "cheapest_2h": { "name": "Odavaim 2 h" },
+      "cheapest_3h": { "name": "Odavaim 3 h" },
+      "price_level": {
+        "name": "Hinnatase",
+        "state": { "cheap": "Odav", "normal": "Tavaline", "high": "Kõrge", "expensive": "Kallis" }
+      },
+      "forecast": { "name": "Prognoos" },
+      "outlook": { "name": "Ülevaade" }
+    },
+    "binary_sensor": {
+      "cheap_now": { "name": "Praegu odav" },
+      "tomorrow_published": { "name": "Homsed hinnad avaldatud" }
+    }
+  }
+}

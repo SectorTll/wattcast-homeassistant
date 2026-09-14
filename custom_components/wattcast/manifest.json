@@ -1,0 +1,12 @@
+{
+  "domain": "wattcast",
+  "name": "Wattcast",
+  "codeowners": ["@SectorTll"],
+  "config_flow": true,
+  "documentation": "https://github.com/SectorTll/wattcast-hacs",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/SectorTll/wattcast-hacs/issues",
+  "requirements": [],
+  "version": "0.2.0"
+}

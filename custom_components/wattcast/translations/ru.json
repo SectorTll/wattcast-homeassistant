@@ -1,0 +1,49 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Wattcast",
+        "description": "Биржевые цены Nord Pool и прогноз на 7 дней для Эстонии, Финляндии, Латвии и Литвы. Одна запись на ценовую зону.",
+        "data": {
+          "zone": "Ценовая зона",
+          "base_url": "Адрес API",
+          "api_key": "Ключ API (необязательно, выше лимит запросов)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Не удалось подключиться к API Wattcast",
+      "not_wattcast": "По этому адресу отвечает не API Wattcast",
+      "invalid_url": "Введите полный адрес, например https://wattcast.eu"
+    },
+    "abort": {
+      "already_configured": "Эта зона уже настроена"
+    }
+  },
+  "selector": {
+    "zone": {
+      "options": { "EE": "Эстония (EE)", "FI": "Финляндия (FI)", "LV": "Латвия (LV)", "LT": "Литва (LT)" }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "price": { "name": "Цена" },
+      "price_hour": { "name": "Цена (час)" },
+      "today_average": { "name": "Средняя сегодня" },
+      "tomorrow_average": { "name": "Средняя завтра" },
+      "cheapest_1h": { "name": "Дешевейший 1 ч" },
+      "cheapest_2h": { "name": "Дешевейшие 2 ч" },
+      "cheapest_3h": { "name": "Дешевейшие 3 ч" },
+      "price_level": {
+        "name": "Уровень цены",
+        "state": { "cheap": "Дёшево", "normal": "Обычно", "high": "Дорого", "expensive": "Очень дорого" }
+      },
+      "forecast": { "name": "Прогноз" },
+      "outlook": { "name": "Обзор" }
+    },
+    "binary_sensor": {
+      "cheap_now": { "name": "Сейчас дёшево" },
+      "tomorrow_published": { "name": "Цены на завтра опубликованы" }
+    }
+  }
+}
