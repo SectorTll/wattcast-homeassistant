@@ -52,10 +52,19 @@ async def test_cheapest_windows_forecast_and_outlook(hass: HomeAssistant, aiocli
     assert hass.states.get("sensor.wattcast_ee_cheapest_1_h").attributes["minutes"] == 60
     f = hass.states.get("sensor.wattcast_ee_forecast")
     assert f.state == (NOW - dt.timedelta(minutes=5)).isoformat()
-    hours = f.attributes["hours"]
-    assert len(hours) == 24 + 7 * 24 and hours[0] == ["2026-09-15T00:00:00+03:00", 40.0] and hours[24][1] == 62.0
+    assert "hours" not in f.attributes   # dropped: the per-day arrays live on the price sensors now
     assert f.attributes["forecast"][0] == {"start": "2026-09-15T21:00:00Z", "k": 1, "p10": 3.2, "p50": 6.2, "p90": 10.2}
     assert f.attributes["known_until"] == "2026-09-15T20:45:00Z"
+    # raw_today / raw_tomorrow: hourly on the hour sensor (Nord Pool shape), 15-min on the quarter sensor
+    ph = hass.states.get("sensor.wattcast_ee_price_hour")
+    rt = ph.attributes["raw_today"]
+    assert len(rt) == 24 and ph.attributes["raw_today_known"] is True
+    assert rt[0] == {"start": "2026-09-15T00:00:00+03:00", "end": "2026-09-15T01:00:00+03:00", "value": 4.0}
+    assert ph.attributes["today"][0] == 4.0 and len(ph.attributes["today"]) == 24
+    assert ph.attributes["raw_tomorrow_known"] is False   # 16.09 is forecast at the frozen moment
+    assert ph.attributes["raw_tomorrow"][0]["value"] == 6.2
+    pq = hass.states.get("sensor.wattcast_ee_price")
+    assert len(pq.attributes["raw_today"]) == 96 and "end" not in pq.attributes["raw_today"][0]
     o = hass.states.get("sensor.wattcast_ee_outlook")
     assert o.state == "Windy week, cheap nights" and o.attributes["markdown"] == "Prices fall from Wednesday."
     lvl = hass.states.get("sensor.wattcast_ee_price_level")

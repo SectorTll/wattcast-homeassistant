@@ -62,9 +62,14 @@ class PriceSensor(WattcastEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        s = self.coordinator.current_quarter()
+        c = self.coordinator
+        s = c.current_quarter()
+        today, today_known = c.raw_series(900, 0, compact=True)
+        tomorrow, tomorrow_known = c.raw_series(900, 1, compact=True)
         return {"eur_mwh": s["eurMwh"] if s else None, "slot_start": s["startsAt"] if s else None, "resolution": "15min",
-                "level": self.coordinator.level_of(s["ctKwh"] if s else None)}
+                "level": c.level_of(s["ctKwh"] if s else None),
+                "raw_today": today, "raw_tomorrow": tomorrow,
+                "raw_today_known": today_known, "raw_tomorrow_known": tomorrow_known}
 
 
 class PriceHourSensor(WattcastEntity, SensorEntity):
@@ -84,11 +89,17 @@ class PriceHourSensor(WattcastEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        s = self.coordinator.current_hour()
-        nxt = self.coordinator.hour_at(1)
+        c = self.coordinator
+        s = c.current_hour()
+        nxt = c.hour_at(1)
+        today, today_known = c.raw_series(3600, 0)
+        tomorrow, tomorrow_known = c.raw_series(3600, 1)
         return {"eur_mwh": s["eurMwh"] if s else None, "hour_start": s["startsAt"] if s else None,
                 "next_hour_ct_kwh": nxt["ct_kwh"] if nxt else None, "next_hour_known": nxt["known"] if nxt else None,
-                "level": self.coordinator.level_of(s["ctKwh"] if s else None)}
+                "level": c.level_of(s["ctKwh"] if s else None),
+                "raw_today": today, "raw_tomorrow": tomorrow,
+                "raw_today_known": today_known, "raw_tomorrow_known": tomorrow_known,
+                "today": c.day_prices(3600, 0), "tomorrow": c.day_prices(3600, 1)}
 
 
 class DayAverageSensor(WattcastEntity, SensorEntity):
@@ -176,12 +187,13 @@ class ForecastSensor(WattcastEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
+        # 7-day hourly band (ct/kWh). The per-day settled/forecast arrays live on the price sensors as
+        # raw_today / raw_tomorrow (Nord Pool shape); the full settled history is in each price sensor's own history.
         h = self.coordinator.data.hourly
-        return {"unit": "EUR/MWh", "hours": self.coordinator.hours_series(),
-                "known_until": h.get("lastKnownIso"),
+        return {"forecast_unit": CT_KWH, "known_until": h.get("lastKnownIso"),
                 "forecast": [{"start": x["startsAt"], "k": x["k"], "p10": round(x["p10"] / 10, 3), "p50": x["p50CtKwh"],
                               "p90": round(x["p90"] / 10, 3)} for x in h.get("forecast", [])],
-                "forecast_unit": CT_KWH, "backtest_mae_eur_mwh": h.get("backtestMae"),
+                "backtest_mae_eur_mwh": h.get("backtestMae"),
                 "adjustments": (h.get("adjustments") or {}).get("entries")}
 
 

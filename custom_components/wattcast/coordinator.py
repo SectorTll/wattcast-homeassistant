@@ -126,11 +126,29 @@ class WattcastCoordinator(DataUpdateCoordinator[WattcastData]):
             return LEVELS[2]
         return LEVELS[3]
 
-    def hours_series(self) -> list[list]:
-        """[[local ISO start, EUR/MWh], ...] for settled + forecast hours, the shape of a Nord Pool hourly cache."""
-        out = []
-        for x in self.data.hourly.get("known", []):
-            out.append([datetime.fromtimestamp(x["ts"], self.tz).isoformat(), x["eurMwh"]])
-        for x in self.data.hourly.get("forecast", []):
-            out.append([datetime.fromtimestamp(x["ts"], self.tz).isoformat(), x["p50"]])
-        return out
+    def raw_series(self, step: int, day_offset: int, compact: bool = False) -> tuple[list[dict], bool]:
+        """One local day at the given resolution, Nord Pool `raw_today` shape: [{start, end, value}] in ct/kWh
+        (end omitted when compact). Settled price where published, else the forecast p50. Returns (rows, all_known)."""
+        src = self.data.hourly if step == 3600 else self.data.quarter
+        t0, t1 = self.local_day_bounds(day_offset)
+        pts: dict[int, tuple[float, bool]] = {}
+        for x in src.get("known", []):
+            if t0 <= x["ts"] < t1:
+                pts[x["ts"]] = (x["ctKwh"], True)
+        for x in src.get("forecast", []):
+            if t0 <= x["ts"] < t1 and x["ts"] not in pts:
+                pts[x["ts"]] = (x["p50CtKwh"], False)
+        rows, all_known = [], True
+        for ts in sorted(pts):
+            val, known = pts[ts]
+            all_known = all_known and known
+            e = {"start": datetime.fromtimestamp(ts, self.tz).isoformat(), "value": val}
+            if not compact:
+                e["end"] = datetime.fromtimestamp(ts + step, self.tz).isoformat()
+            rows.append(e)
+        return rows, all_known
+
+    def day_prices(self, step: int, day_offset: int) -> list[float]:
+        """Plain price list for a local day (Nord Pool `today` / `tomorrow` shape)."""
+        return [r["value"] for r in self.raw_series(step, day_offset, compact=True)[0]]
+

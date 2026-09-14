@@ -17,18 +17,20 @@ Manual install: copy `custom_components/wattcast` into your `config/custom_compo
 
 | Entity | State | Attributes |
 |---|---|---|
-| `sensor.wattcast_ee_price` | current 15-minute price, ct/kWh | `eur_mwh`, `slot_start`, `level` |
-| `sensor.wattcast_ee_price_hour` | current hour (mean of its quarters), ct/kWh | `next_hour_ct_kwh`, `next_hour_known`, `level` |
+| `sensor.wattcast_ee_price` | current 15-minute price, ct/kWh | `eur_mwh`, `slot_start`, `level`, `raw_today` / `raw_tomorrow` = 15-minute `[{start, value}]` (ct/kWh), `raw_today_known` / `raw_tomorrow_known` |
+| `sensor.wattcast_ee_price_hour` | current hour (mean of its quarters), ct/kWh | `next_hour_ct_kwh`, `next_hour_known`, `level`, `raw_today` / `raw_tomorrow` = hourly `[{start, end, value}]` (ct/kWh, Nord Pool shape), `today` / `tomorrow` = plain price arrays, `raw_today_known` / `raw_tomorrow_known` |
 | `sensor.wattcast_ee_today_average` / `_tomorrow_average` | day average, ct/kWh | `basis` = `settled` or `forecast`, `min_ct_kwh`, `min_hour`, `max_ct_kwh`, `max_hour` |
 | `sensor.wattcast_ee_cheapest_1h` / `_2h` / `_3h` | start of the cheapest window in the next 24 h (timestamp) | `ends_at`, `avg_ct_kwh`, `known` (settled vs forecast), `windows` (top 3) |
 | `sensor.wattcast_ee_price_level` | `cheap` / `normal` / `high` / `expensive` | thresholds `p25_ct_kwh`, `p50_ct_kwh`, `p75_ct_kwh` of the last 30 days |
-| `sensor.wattcast_ee_forecast` | when the forecast was issued (timestamp) | `hours` = `[[local ISO start, EUR/MWh], …]` settled + forecast p50 for ~8 days; `forecast` = list of `{start, k, p10, p50, p90}` in ct/kWh; `known_until`; `backtest_mae_eur_mwh`; `adjustments` (expert corrections from the daily outlook) |
+| `sensor.wattcast_ee_forecast` | when the forecast was issued (timestamp) | `forecast` = the 7-day hourly band, list of `{start, k, p10, p50, p90}` in ct/kWh; `known_until`; `backtest_mae_eur_mwh`; `adjustments` (expert corrections from the daily outlook) |
 | `sensor.wattcast_ee_outlook` | title of the written daily outlook | `markdown`, `language`, `generated_at` |
 | `binary_sensor.wattcast_ee_cheap_now` | on when the current hour is below the 30-day p25 | `price_ct_kwh`, `threshold_ct_kwh` |
 | `binary_sensor.wattcast_ee_tomorrow_published` | on once Nord Pool has published tomorrow (about 14:00 EET) | `settled_hours`, `known_until` |
 
-The `hours` attribute has the same shape as a Nord Pool hourly cache (`[[iso_local, EUR/MWh], ...]`), so existing
-templates and AppDaemon apps that read such a list can be pointed at the forecast without changing their parsing.
+The `raw_today` / `raw_tomorrow` attributes on the price sensors use the Nord Pool shape (`[{start, end, value}]`), so
+existing cards, blueprints and templates that read Nord Pool's `raw_today` work unchanged. Hourly arrays live on
+`sensor.wattcast_ee_price_hour`, 15-minute arrays (compact `{start, value}`) on `sensor.wattcast_ee_price`; the full
+7-day band is on `sensor.wattcast_ee_forecast`. Each entity's attributes stay under Home Assistant's 16 KB limit.
 
 Polling: prices and cheapest windows every 15 minutes, the 30-day levels and the outlook once an hour. The public API
 allows 60 requests per minute per IP; one zone uses about six per 15 minutes.
@@ -84,8 +86,9 @@ series:
 
 ## Recorder
 
-The `forecast` sensor carries ~200 rows of attributes and changes about once an hour. If you keep a long recorder
-history, exclude its attributes or the entity:
+Some entities carry list attributes. The `forecast` and `outlook` sensors change hourly, and the 15-minute
+`sensor.wattcast_ee_price` carries a 96-point `raw_today` that changes every 15 minutes — exclude these from the
+recorder if you keep a long history (`sensor.wattcast_ee_price_hour` stays recorded and gives hourly statistics):
 
 ```yaml
 recorder:
@@ -93,6 +96,7 @@ recorder:
     entities:
       - sensor.wattcast_ee_forecast
       - sensor.wattcast_ee_outlook
+      - sensor.wattcast_ee_price
 ```
 
 ## Attribution
