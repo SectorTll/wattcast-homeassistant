@@ -4,6 +4,18 @@ Nord Pool day-ahead electricity prices and a **7-day probabilistic forecast** fo
 Lithuania** (bidding zones EE, FI, LV, LT) from [wattcast.eu](https://wattcast.eu), as Home Assistant entities.
 Prices are exchange prices in **ct/kWh without VAT, network fees or supplier margin**.
 
+## Start here
+
+**[Installation guide and EV charging workflow →](https://wattcast.eu/home-assistant)**
+
+See the daily price trend, choose a charging day, then refine the hours once market prices are published.
+The guide includes HACS installation steps and a basic dashboard card. Car or charger control uses its own
+compatible Home Assistant integration; forecasts can change and do not guarantee savings.
+
+[English](https://wattcast.eu/home-assistant) · [Eesti](https://wattcast.eu/home-assistant/et) ·
+[Suomi](https://wattcast.eu/home-assistant/fi) · [Latviešu](https://wattcast.eu/home-assistant/lv) ·
+[Lietuvių](https://wattcast.eu/home-assistant/lt) · [Русский](https://wattcast.eu/home-assistant/ru)
+
 ## Install
 
 1. HACS → Integrations → ⋮ → *Custom repositories* → add `https://github.com/SectorTll/wattcast-homeassistant` (type
