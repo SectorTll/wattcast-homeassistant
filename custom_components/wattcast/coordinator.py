@@ -4,8 +4,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta, tzinfo
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -13,7 +12,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from homeassistant.util import dt as dt_util
 
 from .api import WattcastClient, WattcastError
-from .const import DOMAIN, LEVEL_DAYS, LEVELS, SLOW_INTERVAL, UPDATE_INTERVAL, WINDOW_SCOPE, WINDOWS, ZONE_TZ
+from .const import DOMAIN, LEVEL_DAYS, LEVELS, SLOW_INTERVAL, UPDATE_INTERVAL, WINDOW_SCOPE, WINDOWS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,11 +29,13 @@ class WattcastData:
 
 
 class WattcastCoordinator(DataUpdateCoordinator[WattcastData]):
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, client: WattcastClient, zone: str) -> None:
+    def __init__(
+        self, hass: HomeAssistant, entry: ConfigEntry, client: WattcastClient, zone: str, time_zone: tzinfo
+    ) -> None:
         super().__init__(hass, _LOGGER, config_entry=entry, name=f"{DOMAIN} {zone}", update_interval=UPDATE_INTERVAL)
         self.client = client
         self.zone = zone
-        self.tz = ZoneInfo(ZONE_TZ.get(zone, "UTC"))
+        self.tz = time_zone
 
     async def _async_update_data(self) -> WattcastData:
         z = self.zone
