@@ -34,7 +34,7 @@ Manual install: copy `custom_components/wattcast` into your `config/custom_compo
 | `sensor.wattcast_ee_today_average` / `_tomorrow_average` | day average, ct/kWh | `basis` = `settled` or `forecast`, `min_ct_kwh`, `min_hour`, `max_ct_kwh`, `max_hour` |
 | `sensor.wattcast_ee_cheapest_1h` / `_2h` / `_3h` | start of the cheapest window in the next 24 h (timestamp) | `ends_at`, `avg_ct_kwh`, `known` (settled vs forecast), `windows` (top 3) |
 | `sensor.wattcast_ee_price_level` | `cheap` / `normal` / `high` / `expensive` | thresholds `p25_ct_kwh`, `p50_ct_kwh`, `p75_ct_kwh` of the last 30 days |
-| `sensor.wattcast_ee_forecast` | when the forecast was issued (timestamp) | `forecast` = the 7-day hourly band, list of `{start, k, p10, p50, p90}` in ct/kWh; `known_until`; `backtest_mae_eur_mwh`; `adjustments` (expert corrections from the daily outlook) |
+| `sensor.wattcast_ee_forecast` | when the forecast was issued (timestamp) | `forecast` = the 7-day hourly band, list of `{start, k, p10, p50, p90}` in ct/kWh; `known_until`; `known_tail` = settled hours after the last fully published local day, `[{start, value}]` in ct/kWh (one hour: Nord Pool's CET day ends at 01:00 EET); `backtest_mae_eur_mwh`; `adjustments` (expert corrections from the daily outlook) |
 | `sensor.wattcast_ee_outlook` | title of the written daily outlook | `markdown`, `language`, `generated_at` |
 | `binary_sensor.wattcast_ee_cheap_now` | on when the current hour is below the 30-day p25 | `price_ct_kwh`, `threshold_ct_kwh` |
 | `binary_sensor.wattcast_ee_tomorrow_published` | on once Nord Pool has published tomorrow (about 14:00 EET) | `settled_hours`, `known_until` |
@@ -42,7 +42,9 @@ Manual install: copy `custom_components/wattcast` into your `config/custom_compo
 The `raw_today` / `raw_tomorrow` attributes on the price sensors use the Nord Pool shape (`[{start, end, value}]`), so
 existing cards, blueprints and templates that read Nord Pool's `raw_today` work unchanged. Hourly arrays live on
 `sensor.wattcast_ee_price_hour`, 15-minute arrays (compact `{start, value}`) on `sensor.wattcast_ee_price`; the full
-7-day band is on `sensor.wattcast_ee_forecast`. Each entity's attributes stay under Home Assistant's 16 KB limit.
+7-day band is on `sensor.wattcast_ee_forecast`. `raw_today`, `raw_tomorrow` (once `raw_tomorrow_known`),
+`known_tail` and `forecast` together form one hourly series without gaps or overlaps. Each entity's attributes
+stay under Home Assistant's 16 KB limit.
 
 Polling: prices and cheapest windows every 15 minutes, the 30-day levels and the outlook once an hour. The public API
 allows 60 requests per minute per IP; one zone uses about six per 15 minutes.

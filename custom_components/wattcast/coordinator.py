@@ -149,6 +149,13 @@ class WattcastCoordinator(DataUpdateCoordinator[WattcastData]):
             rows.append(e)
         return rows, all_known
 
+    def known_tail(self) -> list[dict]:
+        """Settled hours after the last fully published local day (tomorrow once published, else today), compact
+        [{start, value}] in ct/kWh: Nord Pool's CET delivery day ends at 01:00 EET, past what raw_* can mark as settled."""
+        t0 = self.local_day_bounds(2 if self.raw_series(3600, 1)[1] else 1)[0]
+        return [{"start": datetime.fromtimestamp(x["ts"], self.tz).isoformat(), "value": x["ctKwh"]}
+                for x in self.data.hourly.get("known", []) if x["ts"] >= t0]
+
     def day_prices(self, step: int, day_offset: int) -> list[float]:
         """Plain price list for a local day (Nord Pool `today` / `tomorrow` shape)."""
         return [r["value"] for r in self.raw_series(step, day_offset, compact=True)[0]]

@@ -28,12 +28,13 @@ def _iso(t: dt.datetime) -> str:
     return t.isoformat().replace("+00:00", "Z")
 
 
-def api_payloads(now: dt.datetime = NOW) -> dict[str, dict]:
-    """Settled prices from local midnight (14.09 21:00Z) to end of 15.09 local (15.09 21:00Z); forecast after that."""
+def api_payloads(now: dt.datetime = NOW, known_hours: int = 24) -> dict[str, dict]:
+    """Settled prices for known_hours from local midnight (14.09 21:00Z; default: to the end of 15.09 local), forecast
+    after that. known_hours=49 is the published state: Nord Pool's CET day runs to 17.09 01:00 local."""
     day0 = dt.datetime(2026, 9, 14, 21, 0, tzinfo=dt.timezone.utc)
-    last_known = dt.datetime(2026, 9, 15, 20, 45, tzinfo=dt.timezone.utc)
+    last_known = day0 + dt.timedelta(hours=known_hours, minutes=-15)
     known_h, known_q, fc_h, fc_q = [], [], [], []
-    for i in range(24):
+    for i in range(known_hours):
         t = day0 + dt.timedelta(hours=i)
         price = 40.0 + i * 5.0          # 4.0 .. 15.5 ct: hour 13 UTC (index 16) = 120 EUR/MWh
         known_h.append({"ts": _ts(t), "startsAt": _iso(t), "eurMwh": price, "ctKwh": round(price / 10, 3)})

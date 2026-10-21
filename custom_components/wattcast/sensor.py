@@ -189,8 +189,9 @@ class ForecastSensor(WattcastEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         # 7-day hourly band (ct/kWh). The per-day settled/forecast arrays live on the price sensors as
         # raw_today / raw_tomorrow (Nord Pool shape); the full settled history is in each price sensor's own history.
+        # known_tail: the settled hour(s) past the last fully published day, so raw_* + known_tail + forecast has no gap.
         h = self.coordinator.data.hourly
-        return {"forecast_unit": CT_KWH, "known_until": h.get("lastKnownIso"),
+        return {"forecast_unit": CT_KWH, "known_until": h.get("lastKnownIso"), "known_tail": self.coordinator.known_tail(),
                 "forecast": [{"start": x["startsAt"], "k": x["k"], "p10": round(x["p10"] / 10, 3), "p50": x["p50CtKwh"],
                               "p90": round(x["p90"] / 10, 3)} for x in h.get("forecast", [])],
                 "backtest_mae_eur_mwh": h.get("backtestMae"),

@@ -54,7 +54,7 @@ async def test_cheapest_windows_forecast_and_outlook(hass: HomeAssistant, aiocli
     assert f.state == (NOW - dt.timedelta(minutes=5)).isoformat()
     assert "hours" not in f.attributes   # dropped: the per-day arrays live on the price sensors now
     assert f.attributes["forecast"][0] == {"start": "2026-09-15T21:00:00Z", "k": 1, "p10": 3.2, "p50": 6.2, "p90": 10.2}
-    assert f.attributes["known_until"] == "2026-09-15T20:45:00Z"
+    assert f.attributes["known_until"] == "2026-09-15T20:45:00Z" and f.attributes["known_tail"] == []
     # raw_today / raw_tomorrow: hourly on the hour sensor (Nord Pool shape), 15-min on the quarter sensor
     ph = hass.states.get("sensor.wattcast_ee_price_hour")
     rt = ph.attributes["raw_today"]
@@ -69,6 +69,40 @@ async def test_cheapest_windows_forecast_and_outlook(hass: HomeAssistant, aiocli
     assert o.state == "Windy week, cheap nights" and o.attributes["markdown"] == "Prices fall from Wednesday."
     lvl = hass.states.get("sensor.wattcast_ee_price_level")
     assert lvl.attributes["p25_ct_kwh"] == 4.5 and lvl.attributes["p75_ct_kwh"] == 13.0
+
+
+def _starts(rows: list[dict]) -> list[dt.datetime]:
+    return [dt.datetime.fromisoformat(r["start"]) for r in rows]
+
+
+def _gap_free(starts: list[dt.datetime]) -> bool:
+    return len(starts) == len(set(starts)) and all(b - a == dt.timedelta(hours=1) for a, b in zip(starts, starts[1:]))
+
+
+async def test_known_hour_past_tomorrow(hass: HomeAssistant, aioclient_mock, freezer) -> None:
+    # 15:30 Tallinn, 16.09 published: known ends at 17.09 00:45 local (Nord Pool's CET day), past raw_tomorrow
+    now = dt.datetime(2026, 9, 15, 12, 30, tzinfo=dt.timezone.utc)
+    freezer.move_to(now)
+    await _setup(hass, aioclient_mock, payloads=api_payloads(now, known_hours=49))
+    f = hass.states.get("sensor.wattcast_ee_forecast").attributes
+    ph = hass.states.get("sensor.wattcast_ee_price_hour").attributes
+    assert f["known_until"] == "2026-09-16T21:45:00Z"
+    assert f["known_tail"] == [{"start": "2026-09-17T00:00:00+03:00", "value": 28.0}]   # hour 48: 40 + 48*5 EUR/MWh
+    assert f["forecast"][0]["start"] == "2026-09-16T22:00:00Z"                     # 17.09 01:00 local
+    assert ph["raw_tomorrow_known"] is True and ph["raw_tomorrow"][-1]["end"] == "2026-09-17T00:00:00+03:00"
+    series = _starts(ph["raw_today"] + ph["raw_tomorrow"] + f["known_tail"] + f["forecast"])
+    assert series.count(dt.datetime(2026, 9, 16, 21, tzinfo=dt.timezone.utc)) == 1 and _gap_free(series)
+
+
+async def test_known_hour_before_publication(hass: HomeAssistant, aioclient_mock, frozen) -> None:
+    # 13:30 Tallinn: 16.09 00:00 local is already settled but raw_tomorrow_known is False, so known_tail carries it
+    await _setup(hass, aioclient_mock, payloads=api_payloads(known_hours=25))
+    f = hass.states.get("sensor.wattcast_ee_forecast").attributes
+    ph = hass.states.get("sensor.wattcast_ee_price_hour").attributes
+    assert ph["raw_tomorrow_known"] is False
+    assert f["known_tail"] == [{"start": "2026-09-16T00:00:00+03:00", "value": 16.0}]
+    assert f["forecast"][0]["start"] == "2026-09-15T22:00:00Z"
+    assert _gap_free(_starts(ph["raw_today"] + f["known_tail"] + f["forecast"]))
 
 
 async def test_no_outlook_yet_and_unload(hass: HomeAssistant, aioclient_mock, frozen) -> None:
